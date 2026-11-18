@@ -75,7 +75,7 @@ erDiagram
 ### 3.1 `model_emission.joblib`
 - **Mengapa disimpan terpisah sebagai `.joblib`?** Pelatihan tiga estimator `HistGradientBoostingRegressor` (`max_iter=300`) beserta seluruh validasinya membutuhkan waktu dan ketergantungan pustaka pelatihan. Dengan menyimpannya dalam bentuk biner terkompresi (`compress=3`), [`app.py`](../app.py) langsung memuat model terlatih ke memori melalui `@st.cache_resource` dalam hitungan milidetik.
 - **Isi Struktur (`dict`):**
-  - `"mean"` (`HistGradientBoostingRegressor`): Memprediksi nilai tengah $\ln\left(\frac{E+1}{\text{total\_loss\_ha}+1}\right)$.
+  - `"mean"` (`HistGradientBoostingRegressor`): Memprediksi nilai tengah $\ln\left(\frac{E+1}{\text{total loss ha}+1}\right)$.
   - `"q10"` (`HistGradientBoostingRegressor(loss="quantile", quantile=0.10)`): Batas bawah optimis (persentil ke-10).
   - `"q90"` (`HistGradientBoostingRegressor(loss="quantile", quantile=0.90)`): Batas atas pesimis (persentil ke-90).
 
@@ -157,17 +157,17 @@ Seluruh fitur berikut dibentuk untuk membantu `HistGradientBoostingRegressor` me
 | Kolom | Formula | Mengapa Fitur Ini Dibuat? |
 |---|---|---|
 | `total_loss_ha` | $\sum_{d=1}^{7} \text{driver}_d$ | Penjumlahan eksplisit 7 kategori pemicu. Menjadi skala utama (`L`) pada target log-intensitas serta fitur paling berpengaruh (`importance = 0.3467`) untuk membedakan intensitas kejadian kecil vs pembukaan masif. |
-| `agri_loss_ratio` | $\dfrac{\text{Perm. Agri} + \text{Shifting}}{\text{total\_loss\_ha} + 10^{-6}}$ | Mengukur dominasi konversi pertanian secara **independen terhadap luas**. Dua kabupaten dengan luas kehilangan berbeda tetapi sama-sama 90% didominasi agrikultur akan dikenali memiliki karakter pemicu serupa. |
-| `wildfire_ratio` | $\dfrac{\text{Wildfire}}{\text{total\_loss\_ha} + 10^{-6}}$ | Mengukur porsi keterlibatan api. Pada tahun kejadian kebakaran ekstrem (seperti El Niño), rasio ini tinggi dan berasosiasi erat dengan pelepasan karbon gambut ekstra. |
-| `loss_extent_ratio` | $\dfrac{\text{total\_loss\_ha}}{\text{extent\_2000} + 1}$ | Mengukur tingkat keparahan gangguan relatif terhadap total luas hutan awal kabupaten tahun 2000. |
-| `potential_co2e` | $\text{total\_loss\_ha} \times \text{densitas}_{2000} \times \frac{44}{12}$ | Memberikan **jangkar fisika stoikiometri** dari biomassa di atas tanah. Dengan adanya fitur ini, model dapat langsung membaca selisih antara emisi teoritis kayu permukaan dan emisi aktual (terutama pada wilayah gambut). |
-| `cum_loss_prior_ha` | $\sum_{t'=2001}^{t-1} \text{tc\_loss\_ha}_{t'}$ | Akumulasi kehilangan tutupan **hanya pada tahun-tahun sebelum tahun $t$** (`cumsum - current`). Pengurangan tahun berjalan wajib dilakukan untuk mencegah kebocoran informasi tahun $t$. |
-| `remaining_extent_ha` | $\max(\text{extent\_2000} - \text{cum\_loss\_prior\_ha},\; 0)$ | Estimasi luas tutupan pohon yang masih tersisa saat memasuki tahun $t$. Menunjukkan apakah cadangan hutan daerah tersebut masih luas atau sudah hampir habis terdeforestasi. |
-| `remaining_frac` | $\dfrac{\text{remaining\_extent\_ha}}{\text{extent\_2000} + 1}$ | Versi ternormalisasi (`0–1`) dari sisa hutan agar kabupaten kecil dan besar dapat dibandingkan proporsi penyusutan hutannya. |
-| `loss_remaining_ratio` | $\dfrac{\text{total\_loss\_ha}}{\text{remaining\_extent\_ha} + 1}$ | Mengukur tekanan kehilangan tahun $t$ terhadap sisa hutan yang benar-benar masih tersedia di tahun tersebut. |
-| `remaining_carbon_Mg_C` | $\text{remaining\_extent\_ha} \times \text{densitas}_{2000}$ | Estimasi sisa stok karbon biomassa atas tanah yang masih tersimpan menjelang tahun $t$. |
-| `primary_share` | $\dfrac{\text{primary\_loss\_ha}}{\text{tc\_loss\_ha} + 10^{-6}}$ | Proporsi hutan primer dalam kehilangan tahun tersebut (`NaN` di 2001). Rasio ini memberi sinyal langsung kualitas kepadatan karbon tutupan yang hilang tanpa bergantung pada skala luas. |
-| `forest_cover_frac` | $\dfrac{\text{extent\_2000}}{\text{area\_ha} + 1}$ | Fraksi luas kabupaten yang tertutup hutan pada baseline 2000 (membedakan kabupaten berhutan lebat dari wilayah urban/terbuka). |
+| `agri_loss_ratio` | $\dfrac{\text{Perm. Agri} + \text{Shifting}}{\text{total loss ha} + 10^{-6}}$ | Mengukur dominasi konversi pertanian secara **independen terhadap luas**. Dua kabupaten dengan luas kehilangan berbeda tetapi sama-sama 90% didominasi agrikultur akan dikenali memiliki karakter pemicu serupa. |
+| `wildfire_ratio` | $\dfrac{\text{Wildfire}}{\text{total loss ha} + 10^{-6}}$ | Mengukur porsi keterlibatan api. Pada tahun kejadian kebakaran ekstrem (seperti El Niño), rasio ini tinggi dan berasosiasi erat dengan pelepasan karbon gambut ekstra. |
+| `loss_extent_ratio` | $\dfrac{\text{total loss ha}}{\text{extent 2000} + 1}$ | Mengukur tingkat keparahan gangguan relatif terhadap total luas hutan awal kabupaten tahun 2000. |
+| `potential_co2e` | $\text{total loss ha} \times \text{densitas}_{2000} \times \frac{44}{12}$ | Memberikan **jangkar fisika stoikiometri** dari biomassa di atas tanah. Dengan adanya fitur ini, model dapat langsung membaca selisih antara emisi teoritis kayu permukaan dan emisi aktual (terutama pada wilayah gambut). |
+| `cum_loss_prior_ha` | $\sum_{t'=2001}^{t-1} \text{tc loss ha}_{t'}$ | Akumulasi kehilangan tutupan **hanya pada tahun-tahun sebelum tahun $t$** (`cumsum - current`). Pengurangan tahun berjalan wajib dilakukan untuk mencegah kebocoran informasi tahun $t$. |
+| `remaining_extent_ha` | $\max(\text{extent 2000} - \text{cum loss prior ha},\; 0)$ | Estimasi luas tutupan pohon yang masih tersisa saat memasuki tahun $t$. Menunjukkan apakah cadangan hutan daerah tersebut masih luas atau sudah hampir habis terdeforestasi. |
+| `remaining_frac` | $\dfrac{\text{remaining extent ha}}{\text{extent 2000} + 1}$ | Versi ternormalisasi (`0–1`) dari sisa hutan agar kabupaten kecil dan besar dapat dibandingkan proporsi penyusutan hutannya. |
+| `loss_remaining_ratio` | $\dfrac{\text{total loss ha}}{\text{remaining extent ha} + 1}$ | Mengukur tekanan kehilangan tahun $t$ terhadap sisa hutan yang benar-benar masih tersedia di tahun tersebut. |
+| `remaining_carbon_Mg_C` | $\text{remaining extent ha} \times \text{densitas}_{2000}$ | Estimasi sisa stok karbon biomassa atas tanah yang masih tersimpan menjelang tahun $t$. |
+| `primary_share` | $\dfrac{\text{primary loss ha}}{\text{tc loss ha} + 10^{-6}}$ | Proporsi hutan primer dalam kehilangan tahun tersebut (`NaN` di 2001). Rasio ini memberi sinyal langsung kualitas kepadatan karbon tutupan yang hilang tanpa bergantung pada skala luas. |
+| `forest_cover_frac` | $\dfrac{\text{extent 2000}}{\text{area ha} + 1}$ | Fraksi luas kabupaten yang tertutup hutan pada baseline 2000 (membedakan kabupaten berhutan lebat dari wilayah urban/terbuka). |
 
 ---
 
@@ -175,8 +175,8 @@ Seluruh fitur berikut dibentuk untuk membantu `HistGradientBoostingRegressor` me
 
 | Kolom | Formula | Mengapa Fitur Ini Dibuat? |
 |---|---|---|
-| `hist_intensity` | $\dfrac{\sum_{t'=2001}^{t-1} E_{t'}}{\left(\sum_{t'=2001}^{t-1} \text{total\_loss\_ha}_{t'}\right) + 1}$ *(jika $\text{cum\_loss\_prior} > 50\text{ ha}$, else `NaN`)* | **Proksi utama karbon bawah tanah (gambut).** Karena data kedalaman gambut tidak tersedia di `IDN.xlsx`, riwayat berapa ton $\text{CO}_2\text{e}$ yang rata-rata lepas per hektare di masa lalu menjadi sinyal kuat apakah daerah tersebut berdiri di atas tanah gambut atau mineral. Ambang `> 50 ha` mencegah nilai rasio meledak akibat pembagi sangat kecil di tahun-tahun awal, dan perhitungan ketat **sebelum tahun $t$** menjaga agar tidak terjadi *temporal leakage*. |
-| `hist_intensity_x_loss` | $\text{hist\_intensity} \times \text{total\_loss\_ha}$ | Suku interaksi (*interaction term*) yang mewakili perkiraan langsung beban emisi berbasis riwayat intensitas daerah dikalikan luas bukaan tahun berjalan. |
+| `hist_intensity` | $\dfrac{\sum_{t'=2001}^{t-1} E_{t'}}{\left(\sum_{t'=2001}^{t-1} \text{total loss ha}_{t'}\right) + 1}$ *(jika `cum_loss_prior` $> 50\text{ ha}$, else `NaN`)* | **Proksi utama karbon bawah tanah (gambut).** Karena data kedalaman gambut tidak tersedia di `IDN.xlsx`, riwayat berapa ton $\text{CO}_2\text{e}$ yang rata-rata lepas per hektare di masa lalu menjadi sinyal kuat apakah daerah tersebut berdiri di atas tanah gambut atau mineral. Ambang `> 50 ha` mencegah nilai rasio meledak akibat pembagi sangat kecil di tahun-tahun awal, dan perhitungan ketat **sebelum tahun $t$** menjaga agar tidak terjadi *temporal leakage*. |
+| `hist_intensity_x_loss` | $\text{hist intensity} \times \text{total loss ha}$ | Suku interaksi (*interaction term*) yang mewakili perkiraan langsung beban emisi berbasis riwayat intensitas daerah dikalikan luas bukaan tahun berjalan. |
 
 ---
 

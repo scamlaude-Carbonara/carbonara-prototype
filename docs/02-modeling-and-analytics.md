@@ -92,7 +92,7 @@ flowchart TD
 
 ### 2.2 Formulasi Target Log-Intensitas dan Masalah Tree Saturation
 
-Kesalahan klasik pada pemodelan pohon keputusan untuk simulasi skenario adalah melatih model langsung pada target mentah ($y = \text{gross\_emissions\_Mg\_CO2e}$).
+Kesalahan klasik pada pemodelan pohon keputusan untuk simulasi skenario adalah melatih model langsung pada target mentah ($y$, yakni `gross_emissions_Mg_CO2e`).
 
 - **Mengapa Target Mentah Gagal Saat Simulasi Ekstrem?** Pohon keputusan bekerja dengan mempartisi ruang data latih menjadi kotak-kotak wilayah dan mengembalikan rata-rata target di dalam kotak tersebut. Akibatnya, **model berbasis pohon tidak dapat melakukan ekstrapolasi di luar nilai maksimum data latih**. Jika pengguna memasukkan skenario pembukaan 300.000 ha pada kabupaten yang rekor historisnya hanya 30.000 ha, model target mentah akan mengalami **saturasi (*tree saturation*)** dan mengeluarkan angka datar yang terlalu kecil.
 
@@ -110,13 +110,13 @@ flowchart LR
     end
 ```
 
-- **Solusi Carbonara:** Secara fisika, total emisi merupakan hasil kali luas kehilangan tutupan ($L = \text{total\_loss\_ha}$) dengan intensitas emisi per hektare wilayah tersebut. Oleh karena itu, model dilatih memprediksi **log-intensitas emisi**:
+- **Solusi Carbonara:** Secara fisika, total emisi merupakan hasil kali luas kehilangan tutupan ($L$, yakni `total_loss_ha`) dengan intensitas emisi per hektare wilayah tersebut. Oleh karena itu, model dilatih memprediksi **log-intensitas emisi**:
 
-$$y_{\text{log}} = \ln\left(\frac{E + 1}{\text{total\_loss\_ha} + 1}\right)$$
+$$y_{\text{log}} = \ln\left(\frac{E + 1}{\text{total loss ha} + 1}\right)$$
 
 Saat inferensi, prediksi $\hat{y}_{\text{log}}$ dikembalikan ke skala emisi kotor ($\text{Mg CO}_2\text{e}$):
 
-$$\hat{E} = \max\left((\text{total\_loss\_ha} + 1) \cdot \exp(\hat{y}_{\text{log}}) - 1,\; 0\right)$$
+$$\hat{E} = \max\left((\text{total loss ha} + 1) \cdot \exp(\hat{y}_{\text{log}}) - 1,\; 0\right)$$
 
 **Keuntungan matematis:** Luas lahan yang dimasukkan di simulator selalu menskalakan total emisi secara fisika, sementara *gradient boosting* berfokus mempelajari faktor pengali intensitas (hutan primer, pemicu karhutla/sawit, serta karakteristik gambut).
 
@@ -128,15 +128,15 @@ Model utama menggunakan **27 fitur (`WARM`)** yang terbagi menjadi dua lapis:
 
 1. **25 Fitur `COLD` (Tanpa Riwayat Emisi Wilayah):**
    - **7 Pemicu Mentah (ha):** `Hard commodities`, `Logging`, `Other natural disturbances`, `Permanent agriculture`, `Settlements & Infrastructure`, `Shifting cultivation`, `Wildfire`.
-   - **Agregat dan Rasio Pemicu:** `total_loss_ha`, `agri_loss_ratio`, `wildfire_ratio`, `loss_extent_ratio`, dan jangkar stoikiometri atas tanah `potential_co2e` ($\text{total\_loss\_ha} \times \text{densitas}_{2000} \times \frac{44}{12}$).
+   - **Agregat dan Rasio Pemicu:** `total_loss_ha`, `agri_loss_ratio`, `wildfire_ratio`, `loss_extent_ratio`, dan jangkar stoikiometri atas tanah `potential_co2e` ($\text{total loss ha} \times \text{densitas}_{2000} \times \frac{44}{12}$).
    - **Kualitas Tutupan:** `primary_loss_ha` dan `primary_share`.
    - **Dinamika Sisa Tutupan Tahun Sebelumnya:** `cum_loss_prior_ha`, `remaining_extent_ha`, `remaining_frac`, `loss_remaining_ratio`, `remaining_carbon_Mg_C`.
    - **Baseline Statis dan Waktu:** `area_ha`, `forest_cover_frac`, `umd_tree_cover_extent_2000__ha`, `gfw_aboveground_carbon_stocks_2000__Mg_C`, `avg_gfw_aboveground_carbon_stocks_2000__Mg_C_ha-1`, serta `year`.
 2. **2 Fitur Tambahan `WARM` (Proksi Karbon Bawah Permukaan / Gambut):**
 
-$$\text{hist\_intensity}_t = \begin{cases} \dfrac{\sum_{t'=2001}^{t-1} E_{t'}}{\left(\sum_{t'=2001}^{t-1} \text{total\_loss\_ha}_{t'}\right) + 1}, & \text{jika } \sum_{t'=2001}^{t-1} \text{total\_loss\_ha}_{t'} > 50\text{ ha} \\ \text{NaN}, & \text{selainnya} \end{cases}$$
+$$\text{hist intensity}_t = \begin{cases} \dfrac{\sum_{t'=2001}^{t-1} E_{t'}}{\left(\sum_{t'=2001}^{t-1} \text{total loss ha}_{t'}\right) + 1}, & \text{jika } \sum_{t'=2001}^{t-1} \text{total loss ha}_{t'} > 50\text{ ha} \\ \text{NaN}, & \text{selainnya} \end{cases}$$
 
-$$\text{hist\_intensity\_x\_loss}_t = \text{hist\_intensity}_t \times \text{total\_loss\_ha}_t$$
+$$\text{hist intensity x loss}_t = \text{hist intensity}_t \times \text{total loss ha}_t$$
 
 Mode `COLD` digunakan pada validasi silang antar-kabupaten agar model tidak mengandalkan identitas riwayat emisi daerah tertentu. Mode **`WARM`** dipakai pada model produksi (`model_emission.joblib`) karena seluruh 497 kabupaten memiliki rekam jejak historis hingga tahun `2025`.
 
@@ -331,7 +331,7 @@ $$\min_{\beta \ge 0} \sum_i \left(E_i - \sum_{d=1}^{7} \beta_d \cdot \text{luas}
 - **Status:** Kedua hasil analisis (`net_table.csv` dan `intensity_hotspots.csv`) ditampilkan pada tab *Emisi Bersih & Hotspot* di `app.py`.
 - **Logika:**
   - *Net Flux* menyandingkan rata-rata tahunan emisi kotor dengan serapan GFW (`308` kabupaten *Net Sink* vs `189` kabupaten *Net Source*; agregat nasional `+349,1 Mt CO₂e/thn`).
-  - *Hotspot* menyaring **365 kabupaten** dengan $\text{cum\_L} \ge 2.000\text{ ha}$ untuk menghindari pembagi kecil, lalu menghitung rasio emisi aktual per hektare terhadap potensi stok biomassa atas tanah ($\text{density} \times \frac{44}{12} + 1$). Rasio tertinggi tercatat pada daerah gambut dalam seperti Hulu Sungai Utara (`8,24×`), Ogan Komering Ilir (`7,42×`), Barito Kuala (`5,96×`), dan Pulang Pisau (`4,72×`).
+  - *Hotspot* menyaring **365 kabupaten** dengan `cum_L` $\ge 2.000\text{ ha}$ untuk menghindari pembagi kecil, lalu menghitung rasio emisi aktual per hektare terhadap potensi stok biomassa atas tanah ($\text{density} \times \frac{44}{12} + 1$). Rasio tertinggi tercatat pada daerah gambut dalam seperti Hulu Sungai Utara (`8,24×`), Ogan Komering Ilir (`7,42×`), Barito Kuala (`5,96×`), dan Pulang Pisau (`4,72×`).
 
 ### 6.4 Deteksi Anomali Ekstrem dengan Robust Z-Score
 - **Status:** Output (`anomalies.csv`) ditampilkan di `app.py` pada tab *Deteksi Anomali* (khusus level Nasional).
