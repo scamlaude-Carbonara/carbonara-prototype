@@ -97,29 +97,37 @@ Penjelasan rinci mengenai domain, metodologi matematis, arsitektur perangkat lun
 
 ```text
 ├── .streamlit/
-│   └── config.toml                  # Konfigurasi server headless & telemetri Streamlit
+│   └── config.toml                       # Konfigurasi server headless & telemetri Streamlit
+├── artifacts/
+│   ├── models/
+│   │   ├── model_emission.joblib         # Model HistGradientBoosting (mean, q10, q90)
+│   │   └── metadata_carbon.joblib        # Metadata fitur, lookup wilayah, & state akhir 2025
+│   └── data/
+│       ├── anomalies.csv                 # 20 kejadian lonjakan emisi ekstrem (Robust Z > 3.0)
+│       ├── cluster_summary.csv           # Profil statistik 5 klaster tipologi
+│       ├── cluster_table.csv             # Hasil klasterisasi & koordinat PCA 497 kabupaten
+│       ├── driver_intensity.csv          # Koefisien intensitas emisi per pemicu (NNLS)
+│       ├── forecast_2026_2030.csv        # Proyeksi emisi 2026–2030 (P10–P90)
+│       ├── intensity_hotspots.csv        # Pemeringkatan hotspot intensitas karbon tersembunyi
+│       ├── net_table.csv                 # Neraca emisi kotor, serapan, & net flux
+│       └── pareto.csv                    # Konsentrasi kumulatif emisi 497 kabupaten
+├── data/
+│   ├── raw/
+│   │   └── IDN.xlsx                      # Dataset mentah Global Forest Watch (2001–2025)
+│   ├── processed/
+│   │   └── processed_forest_carbon.csv   # Data panel bersih (12.425 baris × 39 kolom)
+│   └── geojson/
+│       ├── indonesia_provinces.geojson   # Batas administrasi provinsi (34 fitur)
+│       └── indonesia_kabupaten.geojson   # Batas administrasi kabupaten/kota (507 fitur)
 ├── docs/
-│   ├── 01-domain-concepts.md        # Konsep domain kehutanan, kimia karbon, & panel GFW
-│   ├── 02-modeling-and-analytics.md # Metodologi ML, 8 analisis data mining, & Model Card
-│   ├── 03-system-architecture.md    # Arsitektur sistem, UI app.py, & alur inferensi
-│   └── 04-data-schema.md            # Skema data, rasionalisasi fitur, & kontrak artefak
-├── .gitignore                       # Daftar pengecualian pelacakan versi Git
-├── README.md                        # Ringkasan proyek & panduan instalasi lokal
-├── app.py                           # Aplikasi utama dashboard Streamlit
-├── carbonara_notebook.ipynb         # Pipeline pengolahan data, training, & data mining
-├── requirements.txt                 # Daftar dependensi Python (aplikasi & notebook)
-├── IDN.xlsx                         # Dataset mentah Global Forest Watch (2001–2025)
-├── model_emission.joblib            # Model HistGradientBoosting (mean, q10, q90)
-├── metadata_carbon.joblib           # Metadata fitur, lookup wilayah, & state akhir 2025
-├── processed_forest_carbon.csv      # Data panel bersih (12.425 baris × 39 kolom)
-├── indonesia_provinces.geojson      # Batas administrasi provinsi (34 fitur)
-├── indonesia_kabupaten.geojson      # Batas administrasi kabupaten/kota (507 fitur)
-├── anomalies.csv                    # 20 kejadian lonjakan emisi ekstrem (Robust Z > 3.0)
-├── cluster_summary.csv              # Profil statistik 5 klaster tipologi
-├── cluster_table.csv                # Hasil klasterisasi & koordinat PCA 497 kabupaten
-├── driver_intensity.csv             # Koefisien intensitas emisi per pemicu (NNLS)
-├── forecast_2026_2030.csv           # Proyeksi emisi 2026–2030 (P10–P90)
-├── intensity_hotspots.csv           # Pemeringkatan hotspot intensitas karbon tersembunyi
-├── net_table.csv                    # Neraca emisi kotor, serapan, & net flux
-└── pareto.csv                       # Konsentrasi kumulatif emisi 497 kabupaten
+│   ├── 01-domain-concepts.md             # Konsep domain kehutanan, kimia karbon, & panel GFW
+│   ├── 02-modeling-and-analytics.md      # Metodologi ML, 8 analisis data mining, & Model Card
+│   ├── 03-system-architecture.md         # Arsitektur sistem, UI app.py, & alur inferensi
+│   └── 04-data-schema.md                 # Skema data, rasionalisasi fitur, & kontrak artefak
+├── .gitignore                            # Daftar pengecualian pelacakan versi Git
+├── LICENSE
+├── README.md                             # Ringkasan proyek & panduan instalasi lokal
+├── app.py                                # Aplikasi utama dashboard Streamlit
+├── carbonara_notebook.ipynb              # Pipeline pengolahan data, training, & data mining
+└── requirements.txt                      # Daftar dependensi Python (aplikasi & notebook)
 ```

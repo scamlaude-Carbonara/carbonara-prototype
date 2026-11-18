@@ -40,14 +40,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 @st.cache_resource
 def load_artifacts():
     return (
-        joblib.load(os.path.join(BASE_DIR, "model_emission.joblib")),
-        joblib.load(os.path.join(BASE_DIR, "metadata_carbon.joblib")),
+        joblib.load(os.path.join(BASE_DIR, "artifacts/models/model_emission.joblib")),
+        joblib.load(os.path.join(BASE_DIR, "artifacts/models/metadata_carbon.joblib")),
     )
 
 
 @st.cache_data
 def load_history():
-    return pd.read_csv(os.path.join(BASE_DIR, "processed_forest_carbon.csv"))
+    return pd.read_csv(os.path.join(BASE_DIR, "data/processed/processed_forest_carbon.csv"))
 
 
 @st.cache_data
@@ -61,7 +61,7 @@ def load_csv(path):
 
 @st.cache_data
 def load_geojson(mtime=None):
-    geo_path = os.path.join(BASE_DIR, "indonesia_provinces.geojson")
+    geo_path = os.path.join(BASE_DIR, "data/geo/indonesia_provinces.geojson")
     if os.path.exists(geo_path):
         try:
             with open(geo_path, encoding="utf-8") as f:
@@ -73,7 +73,7 @@ def load_geojson(mtime=None):
 
 @st.cache_data
 def load_kabupaten_geojson(mtime=None):
-    geo_path = os.path.join(BASE_DIR, "indonesia_kabupaten.geojson")
+    geo_path = os.path.join(BASE_DIR, "data/geo/indonesia_kabupaten.geojson")
     if os.path.exists(geo_path):
         try:
             with open(geo_path, encoding="utf-8") as f:
@@ -190,17 +190,17 @@ level = st.sidebar.selectbox(
 
 # Agregat Acuan
 _nat = df.groupby("year")[TARGET].sum()
-_pareto = load_csv("pareto.csv")
+_pareto = load_csv("artifacts/data/pareto.csv")
 _n80 = int((_pareto["cum_share"] < 0.8).sum() + 1) if _pareto is not None else 86
-nt = load_csv("net_table.csv")
-ct = load_csv("cluster_table.csv")
-cs = load_csv("cluster_summary.csv")
-fc = load_csv("forecast_2026_2030.csv")
-di = load_csv("driver_intensity.csv")
-an = load_csv("anomalies.csv")
-hs = load_csv("intensity_hotspots.csv")
-_prov_geo_file = os.path.join(BASE_DIR, "indonesia_provinces.geojson")
-_kab_geo_file = os.path.join(BASE_DIR, "indonesia_kabupaten.geojson")
+nt = load_csv("artifacts/data/net_table.csv")
+ct = load_csv("artifacts/data/cluster_table.csv")
+cs = load_csv("artifacts/data/cluster_summary.csv")
+fc = load_csv("artifacts/data/forecast_2026_2030.csv")
+di = load_csv("artifacts/data/driver_intensity.csv")
+an = load_csv("artifacts/data/anomalies.csv")
+hs = load_csv("artifacts/data/intensity_hotspots.csv")
+_prov_geo_file = os.path.join(BASE_DIR, "data/geo/indonesia_provinces.geojson")
+_kab_geo_file = os.path.join(BASE_DIR, "data/geo/indonesia_kabupaten.geojson")
 geo = load_geojson(os.path.getmtime(_prov_geo_file) if os.path.exists(_prov_geo_file) else None)
 kab_geo = load_kabupaten_geojson(os.path.getmtime(_kab_geo_file) if os.path.exists(_kab_geo_file) else None)
 
