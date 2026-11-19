@@ -55,11 +55,11 @@ flowchart TD
 
 Skrip [`app.py`](../app.py) (1.599 baris) menentukan lokasi berkas secara relatif terhadap direktori skrip (`BASE_DIR = os.path.dirname(os.path.abspath(__file__))`) agar portabel lintas sistem operasi (Windows, macOS, Linux, maupun kontainer cloud).
 
-- **`load_artifacts()` (`@st.cache_resource`):** Memuat `model_emission.joblib` (`models`) dan `metadata_carbon.joblib` (`meta`) sekali ke memori server dan membagikannya antar-sesi pengguna.
-- **`load_history()` (`@st.cache_data`):** Memuat data panel utama `processed_forest_carbon.csv` (`df`).
+- **`load_artifacts()` (`@st.cache_resource`):** Memuat `artifacts/models/model_emission.joblib` (`models`) dan `artifacts/models/metadata_carbon.joblib` (`meta`) sekali ke memori server dan membagikannya antar-sesi pengguna.
+- **`load_history()` (`@st.cache_data`):** Memuat data panel utama `data/processed/processed_forest_carbon.csv` (`df`).
 - **Penanganan Kegagalan Inti:** Apabila model, metadata, atau panel utama gagal dimuat, aplikasi menampilkan pesan error melalui `st.error(...)` dan menghentikan eksekusi dengan `st.stop()`.
-- **`load_csv(path)` (`@st.cache_data`):** Memuat berkas tabel analitik sekunder; mengembalikan `None` apabila berkas tidak tersedia atau gagal dibaca sehingga antarmuka tab terkait dapat melakukan degradasi secara halus (*graceful degradation*) tanpa menghentikan seluruh aplikasi.
-- **`load_geojson(mtime)` & `load_kabupaten_geojson(mtime)` (`@st.cache_data`):** Memuat `indonesia_provinces.geojson` dan `indonesia_kabupaten.geojson` dengan parameter *modification time* (`os.path.getmtime`) agar cache otomatis diperbarui apabila berkas peta berubah.
+- **`load_csv(path)` (`@st.cache_data`):** Memuat berkas tabel analitik sekunder dari `artifacts/data/`; mengembalikan `None` apabila berkas tidak tersedia atau gagal dibaca sehingga antarmuka tab terkait dapat melakukan degradasi secara halus (*graceful degradation*) tanpa menghentikan seluruh aplikasi.
+- **`load_geojson(mtime)` & `load_kabupaten_geojson(mtime)` (`@st.cache_data`):** Memuat `data/geo/indonesia_provinces.geojson` dan `data/geo/indonesia_kabupaten.geojson` dengan parameter *modification time* (`os.path.getmtime`) agar cache otomatis diperbarui apabila berkas peta berubah.
 
 > [!NOTE]
 > Berkas `driver_intensity.csv` dimuat saat inisialisasi ke variabel `di` (`app.py` baris 199), namun saat ini belum dirender sebagai grafik tersendiri pada UI; angka referensi intensitas hutan primer (`~1.170 Mg CO₂e/ha`) dan non-primer (`~629 Mg CO₂e/ha`) disajikan pada keterangan analitis di sub-tab *Tren & Pemicu*.
@@ -173,19 +173,19 @@ sequenceDiagram
 
 | Berkas Artefak | Loader / Variabel di `app.py` | Tab / Komponen Pengguna |
 |---|---|---|
-| `model_emission.joblib` | `load_artifacts()` → `models` | Fungsi `predict()` pada *Simulasi Emisi* & *Skenario Mitigasi* (Kabupaten/Kota) |
-| `metadata_carbon.joblib` | `load_artifacts()` → `meta` | Sidebar pilihan wilayah, *Header Metrics*, dan fungsi `build_row()` |
-| `processed_forest_carbon.csv` | `load_history()` → `df` | *Header Metrics*, *Tren & Pemicu*, *Peta & Prioritas*, *Proyeksi* (data historis), & *Tools* |
-| `indonesia_provinces.geojson` | `load_geojson()` → `geo` | *Peta & Prioritas* (Nasional dan fallback Provinsi/Kabupaten) |
-| `indonesia_kabupaten.geojson` | `load_kabupaten_geojson()` → `kab_geo` | *Peta & Prioritas* (Provinsi dan Kabupaten/Kota) |
-| `pareto.csv` | `load_csv()` → `_pareto` | *Peta & Prioritas* level Nasional (Kurva Pareto dan `_n80`) |
-| `net_table.csv` | `load_csv()` → `nt` | *Emisi Bersih & Hotspot* (bagian Net Flux, semua level) |
-| `intensity_hotspots.csv` | `load_csv()` → `hs` | *Emisi Bersih & Hotspot* (bagian Hotspot Karbon Tersembunyi, semua level) |
-| `cluster_table.csv` | `load_csv()` → `ct` | *Tipologi Wilayah* (scatter PCA 2D dan penandaan posisi wilayah) |
-| `cluster_summary.csv` | `load_csv()` → `cs` | *Tipologi Wilayah* (heatmap pemicu dan tabel ringkasan statistik klaster) |
-| `forecast_2026_2030.csv` | `load_csv()` → `fc` | *Proyeksi 2026–2030* (semua level) |
-| `anomalies.csv` | `load_csv()` → `an` | *Deteksi Anomali* (khusus level Nasional) |
-| `driver_intensity.csv` | `load_csv()` → `di` | Dimuat saat startup (`app.py` baris 199); belum dirender sebagai grafik terpisah |
+| `artifacts/models/model_emission.joblib` | `load_artifacts()` → `models` | Fungsi `predict()` pada *Simulasi Emisi* & *Skenario Mitigasi* (Kabupaten/Kota) |
+| `artifacts/models/metadata_carbon.joblib` | `load_artifacts()` → `meta` | Sidebar pilihan wilayah, *Header Metrics*, dan fungsi `build_row()` |
+| `data/processed/processed_forest_carbon.csv` | `load_history()` → `df` | *Header Metrics*, *Tren & Pemicu*, *Peta & Prioritas*, *Proyeksi* (data historis), & *Tools* |
+| `data/geo/indonesia_provinces.geojson` | `load_geojson()` → `geo` | *Peta & Prioritas* (Nasional dan fallback Provinsi/Kabupaten) |
+| `data/geo/indonesia_kabupaten.geojson` | `load_kabupaten_geojson()` → `kab_geo` | *Peta & Prioritas* (Provinsi dan Kabupaten/Kota) |
+| `artifacts/data/pareto.csv` | `load_csv()` → `_pareto` | *Peta & Prioritas* level Nasional (Kurva Pareto dan `_n80`) |
+| `artifacts/data/net_table.csv` | `load_csv()` → `nt` | *Emisi Bersih & Hotspot* (bagian Net Flux, semua level) |
+| `artifacts/data/intensity_hotspots.csv` | `load_csv()` → `hs` | *Emisi Bersih & Hotspot* (bagian Hotspot Karbon Tersembunyi, semua level) |
+| `artifacts/data/cluster_table.csv` | `load_csv()` → `ct` | *Tipologi Wilayah* (scatter PCA 2D dan penandaan posisi wilayah) |
+| `artifacts/data/cluster_summary.csv` | `load_csv()` → `cs` | *Tipologi Wilayah* (heatmap pemicu dan tabel ringkasan statistik klaster) |
+| `artifacts/data/forecast_2026_2030.csv` | `load_csv()` → `fc` | *Proyeksi 2026–2030* (semua level) |
+| `artifacts/data/anomalies.csv` | `load_csv()` → `an` | *Deteksi Anomali* (khusus level Nasional) |
+| `artifacts/data/driver_intensity.csv` | `load_csv()` → `di` | Dimuat saat startup (`app.py` baris 199); belum dirender sebagai grafik terpisah |
 
 ---
 

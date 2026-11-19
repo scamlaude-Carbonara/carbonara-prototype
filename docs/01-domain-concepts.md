@@ -139,7 +139,7 @@ flowchart TD
 
 ## 7. Sumber Data dan Pembentukan Panel Spatio-Temporal
 
-Data mentah berasal dari **Global Forest Watch (GFW)** tingkat *Subnational 2* Indonesia, rilis **`v20260427`**, menggunakan ambang batas kerapatan tajuk **`threshold = 30%`**. Seluruh data dari 5 *worksheet* pada [`IDN.xlsx`](../IDN.xlsx) digabungkan menjadi panel seimbang berdimensi **497 kabupaten/kota × 25 tahun (`2001–2025`) = 12.425 observasi**.
+Data mentah berasal dari **Global Forest Watch (GFW)** tingkat *Subnational 2* Indonesia, rilis **`v20260427`**, menggunakan ambang batas kerapatan tajuk **`threshold = 30%`**. Seluruh data dari 5 *worksheet* pada [`data/raw/IDN.xlsx`](../data/raw/IDN.xlsx) digabungkan menjadi panel seimbang berdimensi **497 kabupaten/kota × 25 tahun (`2001–2025`) = 12.425 observasi**.
 
 ```mermaid
 flowchart LR

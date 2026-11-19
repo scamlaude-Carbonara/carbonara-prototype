@@ -6,9 +6,9 @@ Aplikasi web dibangun menggunakan **Streamlit** ([`app.py`](app.py)) dan didukun
 
 ```mermaid
 flowchart LR
-    RAW["IDN.xlsx (GFW 2001-2025)"] --> NB["carbonara_notebook.ipynb (Pipeline ML & 8 Analisis)"]
-    NB --> ART["Artefak (.joblib + 9 .csv)"]
-    GEO["Batas Spasial (.geojson)"] --> APP["app.py (Streamlit DSS)"]
+    RAW["data/raw/IDN.xlsx (GFW 2001-2025)"] --> NB["carbonara_notebook.ipynb (Pipeline ML & 8 Analisis)"]
+    NB --> ART["Artefak (.joblib + .csv)"]
+    GEO["Batas Spasial (data/geo/*.geojson)"] --> APP["app.py (Streamlit DSS)"]
     ART --> APP
     APP --> OUT["Dashboard Interaktif & Simulator Mitigasi"]
 ```
@@ -75,7 +75,7 @@ Aplikasi dapat diakses melalui peramban pada alamat default `http://localhost:85
 ## Reproduksi Pipeline Pelatihan
 
 - Seluruh kode persiapan data, audit, pelatihan model, dan analisis *data mining* berada di [`carbonara_notebook.ipynb`](carbonara_notebook.ipynb).
-- Data mentah [`IDN.xlsx`](IDN.xlsx) (GFW rilis `v20260427`, ambang kanopi `30%`) tersedia di direktori utama sehingga notebook dapat langsung dieksekusi ulang.
+- Data mentah [`data/raw/IDN.xlsx`](data/raw/IDN.xlsx) (GFW rilis `v20260427`, ambang kanopi `30%`) tersedia di direktori `data/raw/` sehingga notebook dapat langsung dieksekusi ulang.
 - Apabila terjadi perubahan fitur model atau skema tabel di dalam notebook, seluruh sel perlu dijalankan ulang hingga tahap verifikasi akhir agar artefak `.joblib` dan `.csv` tetap sinkron dengan [`app.py`](app.py). *(Delapan berkas diagnostik sekunder seperti `metrics.json` dan gambar plot dikecualikan dari pelacakan Git melalui `.gitignore`.)*
 
 ---
@@ -116,7 +116,7 @@ Penjelasan rinci mengenai domain, metodologi matematis, arsitektur perangkat lun
 │   │   └── IDN.xlsx                      # Dataset mentah Global Forest Watch (2001–2025)
 │   ├── processed/
 │   │   └── processed_forest_carbon.csv   # Data panel bersih (12.425 baris × 39 kolom)
-│   └── geojson/
+│   └── geo/
 │       ├── indonesia_provinces.geojson   # Batas administrasi provinsi (34 fitur)
 │       └── indonesia_kabupaten.geojson   # Batas administrasi kabupaten/kota (507 fitur)
 ├── docs/
@@ -125,7 +125,7 @@ Penjelasan rinci mengenai domain, metodologi matematis, arsitektur perangkat lun
 │   ├── 03-system-architecture.md         # Arsitektur sistem, UI app.py, & alur inferensi
 │   └── 04-data-schema.md                 # Skema data, rasionalisasi fitur, & kontrak artefak
 ├── .gitignore                            # Daftar pengecualian pelacakan versi Git
-├── LICENSE
+├── LICENSE                               # Lisensi perangkat lunak (MIT License)
 ├── README.md                             # Ringkasan proyek & panduan instalasi lokal
 ├── app.py                                # Aplikasi utama dashboard Streamlit
 ├── carbonara_notebook.ipynb              # Pipeline pengolahan data, training, & data mining

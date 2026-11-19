@@ -56,6 +56,7 @@ erDiagram
 
 ## 2. Berkas Sumber Mentah IDN xlsx
 
+- **Lokasi Berkas:** `data/raw/IDN.xlsx`
 - **Sumber:** Global Forest Watch (GFW) Subnational 2 Indonesia, rilis `v20260427`.
 - **Ambang Kanopi:** `threshold = 30%` (`umd_tree_cover_density_2000__threshold == 30` pada sheet karbon).
 - **Rentang Temporal:** `2001–2025` (25 tahun).
@@ -73,6 +74,7 @@ erDiagram
 ## 3. Artefak Serialisasi Model dan State
 
 ### 3.1 `model_emission.joblib`
+- **Lokasi Berkas:** `artifacts/models/model_emission.joblib`
 - **Mengapa disimpan terpisah sebagai `.joblib`?** Pelatihan tiga estimator `HistGradientBoostingRegressor` (`max_iter=300`) beserta seluruh validasinya membutuhkan waktu dan ketergantungan pustaka pelatihan. Dengan menyimpannya dalam bentuk biner terkompresi (`compress=3`), [`app.py`](../app.py) langsung memuat model terlatih ke memori melalui `@st.cache_resource` dalam hitungan milidetik.
 - **Isi Struktur (`dict`):**
   - `"mean"` (`HistGradientBoostingRegressor`): Memprediksi nilai tengah $\ln\left(\frac{E+1}{\text{total loss ha}+1}\right)$.
@@ -80,6 +82,7 @@ erDiagram
   - `"q90"` (`HistGradientBoostingRegressor(loss="quantile", quantile=0.90)`): Batas atas pesimis (persentil ke-90).
 
 ### 3.2 `metadata_carbon.joblib`
+- **Lokasi Berkas:** `artifacts/models/metadata_carbon.joblib`
 - **Mengapa diperlukan file metadata tersendiri?** Saat pengguna melakukan simulasi skenario masa depan di [`app.py`](../app.py), pengguna hanya memasukkan luas 7 pemicu dan luas hutan primer. Model ML membutuhkan **27 kolom berurutan** termasuk kondisi sisa tutupan hutan akhir tahun `2025` (`remaining_extent_ha`, `hist_intensity`, stok karbon tahun 2000, dll.). File ini menyimpan *snapshot* kondisi akhir tersebut agar antarmuka web tidak perlu menghitung ulang agregat historis tiap kali pengguna menggeser input.
 
 | Key | Tipe | Isi & Fungsi di Aplikasi |
@@ -98,15 +101,15 @@ erDiagram
 
 | Berkas | Jumlah Poligon | Kunci Join | Penjelasan & Penggunaan |
 |---|---|---|---|
-| `indonesia_provinces.geojson` | 34 poligon | `properties.state` | Menyimpan geometri batas provinsi Indonesia (`cartodb_id`, `country`, `id_1`, `slug`, `state`). Pada [`app.py`](../app.py#L556), nama `"Bangka Belitung"` di data CSV dipetakan menjadi `"Bangka-Belitung"` agar cocok dengan `properties.state`. Digunakan untuk peta nasional dan *fallback* peta provinsi/kabupaten. |
-| `indonesia_kabupaten.geojson` | 507 poligon | `properties.kab_id` | Menyimpan geometri batas kabupaten/kota (koordinat `SRS_ID = 4326`) dengan properti `subnational1`, `subnational2`, `kab_id` (`"<subnational1> - <subnational2>"`), `WADMPR`, dan `WADMKK`. Disaring per `subnational1 == prov` sebelum dirender di tab *Peta & Prioritas*. |
+| `data/geo/indonesia_provinces.geojson` | 34 poligon | `properties.state` | Menyimpan geometri batas provinsi Indonesia (`cartodb_id`, `country`, `id_1`, `slug`, `state`). Pada [`app.py`](../app.py#L556), nama `"Bangka Belitung"` di data CSV dipetakan menjadi `"Bangka-Belitung"` agar cocok dengan `properties.state`. Digunakan untuk peta nasional dan *fallback* peta provinsi/kabupaten. |
+| `data/geo/indonesia_kabupaten.geojson` | 507 poligon | `properties.kab_id` | Menyimpan geometri batas kabupaten/kota (koordinat `SRS_ID = 4326`) dengan properti `subnational1`, `subnational2`, `kab_id` (`"<subnational1> - <subnational2>"`), `WADMPR`, dan `WADMKK`. Disaring per `subnational1 == prov` sebelum dirender di tab *Peta & Prioritas*. |
 
 ---
 
 ## 5. Penjelasan Lengkap processed_forest_carbon csv dan Rasionalisasi Fitur
 
 ### Mengapa Berkas Ini Dihasilkan?
-Berkas `IDN.xlsx` terdiri dari 5 sheet berformat *wide* dengan penamaan kolom yang berbeda-beda dan memiliki perbedaan cakupan wilayah (497 vs 494 kabupaten). Membaca dan menggabungkan Excel secara langsung saat startup aplikasi web akan lambat dan membutuhkan pustaka `openpyxl`. Oleh karena itu, seluruh proses penggabungan, pembersihan, audit, dan perhitungan fitur dilakukan sekali di notebook lalu diekspor ke `processed_forest_carbon.csv` (**12.425 baris = 497 kabupaten × 25 tahun**, **39 kolom**).
+Berkas `IDN.xlsx` terdiri dari 5 sheet berformat *wide* dengan penamaan kolom yang berbeda-beda dan memiliki perbedaan cakupan wilayah (497 vs 494 kabupaten). Membaca dan menggabungkan Excel secara langsung saat startup aplikasi web akan lambat dan membutuhkan pustaka `openpyxl`. Oleh karena itu, seluruh proses penggabungan, pembersihan, audit, dan perhitungan fitur dilakukan sekali di notebook lalu diekspor ke `data/processed/processed_forest_carbon.csv` (**12.425 baris = 497 kabupaten × 25 tahun**, **39 kolom**).
 
 Di [`app.py`](../app.py), berkas ini menjadi sumber data utama untuk: *Header Executive Metrics*, *Tren & Pemicu*, *Peta & Prioritas*, garis realisasi historis pada *Proyeksi 2026–2030*, serta perhitungan rata-rata 5 tahun terakhir pada tab *Tools*.
 
@@ -182,7 +185,7 @@ Seluruh fitur berikut dibentuk untuk membantu `HistGradientBoostingRegressor` me
 
 ## 6. Penjelasan Mendalam Delapan Berkas CSV Analitik
 
-Seluruh berkas CSV di bawah ini dihasilkan secara *offline* oleh [`carbonara_notebook.ipynb`](../carbonara_notebook.ipynb) dan dimuat ke memori oleh [`app.py`](../app.py). Pemisahan menjadi berkas CSV terpisah bertujuan agar dashboard tidak perlu mengulang optimasi numerik (NNLS), komputasi klasterisasi (K-Means + PCA), maupun *backtesting* multi-horizon setiap kali pengguna membuka halaman web, sekaligus memastikan hasil tetap deterministik (`SEED = 42`).
+Seluruh berkas CSV di bawah ini dihasilkan secara *offline* oleh [`carbonara_notebook.ipynb`](../carbonara_notebook.ipynb) ke direktori `artifacts/data/` dan dimuat ke memori oleh [`app.py`](../app.py). Pemisahan menjadi berkas CSV terpisah bertujuan agar dashboard tidak perlu mengulang optimasi numerik (NNLS), komputasi klasterisasi (K-Means + PCA), maupun *backtesting* multi-horizon setiap kali pengguna membuka halaman web, sekaligus memastikan hasil tetap deterministik (`SEED = 42`).
 
 ---
 
@@ -337,9 +340,9 @@ Seluruh berkas CSV di bawah ini dihasilkan secara *offline* oleh [`carbonara_not
 
 Sel verifikasi terakhir di [`carbonara_notebook.ipynb`](../carbonara_notebook.ipynb) memeriksa ketersediaan **19 berkas** keluaran. Sebelas berkas inti disertakan dalam repositori, sedangkan **8 berkas sekunder** berikut tetap dihasilkan secara lokal saat notebook dieksekusi namun dikecualikan dari pelacakan Git melalui [`.gitignore`](../.gitignore) karena merupakan artefak diagnostik eksperimen yang tidak dibaca oleh [`app.py`](../app.py):
 
-- `kabupaten_static.csv` — Tabel profil statis 497 kabupaten sebagai bahan perantara pembentukan `net_table.csv`.
-- `data_audit.json` — Ringkasan metrik audit penggabungan panel (`497` vs `494` kabupaten, rasio kecocokan `0.9983`, dan agregat nasional).
-- `metrics.json` — Rekaman tabel skor `R2` dan `MAE` dari enam eksperimen perbandingan model.
-- `feature_importance.csv` & `feature_importance.png` — Skor numerik dan visualisasi *permutation importance* pada set uji `2022–2025`.
-- `shap_driver.csv` & `shap_driver.png` — Rata-rata nilai `|SHAP|` dan *summary plot* dari model interpretasi terpisah.
-- `forecast_backtest.csv` — Matriks MAE dan $R^2$ hasil *rolling-origin backtesting* per horizon $h=1..5$.
+- `artifacts/data/kabupaten_static.csv` — Tabel profil statis 497 kabupaten sebagai bahan perantara pembentukan `net_table.csv`.
+- `artifacts/data/data_audit.json` — Ringkasan metrik audit penggabungan panel (`497` vs `494` kabupaten, rasio kecocokan `0.9983`, dan agregat nasional).
+- `artifacts/data/metrics.json` — Rekaman tabel skor `R2` dan `MAE` dari enam eksperimen perbandingan model.
+- `artifacts/data/feature_importance.csv` & `artifacts/images/feature_importance.png` — Skor numerik dan visualisasi *permutation importance* pada set uji `2022–2025`.
+- `artifacts/data/shap_driver.csv` & `artifacts/images/shap_driver.png` — Rata-rata nilai `|SHAP|` dan *summary plot* dari model interpretasi terpisah.
+- `artifacts/data/forecast_backtest.csv` — Matriks MAE dan $R^2$ hasil *rolling-origin backtesting* per horizon $h=1..5$.
